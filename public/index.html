@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to Cyberticks</title>
+    <!-- load core firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-app.js"></script>
+    <!-- load firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-auth.js"></script>
+    <script>
+      // app config
+      var firebaseConfig = {
+        apiKey: "AIzaSyBtYgbV36Oyos9nz-MohwHeRPrRgvtar3k",
+        authDomain: "cyberticks-dinus.firebaseapp.com",
+        databaseURL: "https://cyberticks-dinus.firebaseio.com",
+        projectId: "cyberticks-dinus",
+        storageBucket: "cyberticks-dinus.appspot.com",
+        messagingSenderId: "292168645560",
+        appId: "1:292168645560:web:fb86d9490d68cf26252d4d",
+        measurementId: "G-SC61BKDQ3E"
+      };
+      // init firebase
+      firebase.initializeApp(firebaseConfig);
+    </script>
+    <!-- login UI -->
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/ui/4.5.0/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.5.0/firebase-ui-auth.css" />
+    <script type="text/javascript">
+      var uiConfig = {
+        signInSuccessUrl: 'homepage.html',
+        signInOptions: [
+          firebase.auth.EmailAuthProvider.PROVIDER_ID
+        ]
+      };
+      var ui = new firebaseui.auth.AuthUI(firebase.auth());
+      ui.start('#firebaseui-auth-container', uiConfig);
+    </script>
+  </head>
+  <body>
+    <div id="firebaseui-auth-container" style="transform: translate(0px,50px);"></div>
+  </body>
+</html>

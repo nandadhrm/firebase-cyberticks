@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap" rel="stylesheet">
+        <!-- load jquery mobile css -->
+        <link rel="stylesheet" href="src/jquery.mobile-1.4.5.css" />
+        <!-- load jquery mobile script -->
+        <script src="src/jquery.min.js"></script>
+        <script src="src/jquery.mobile-1.4.5.min.js"></script>
+        <!-- load font awesome script -->
+        <script defer src="src/brands.min.js"></script>
+        <script defer src="src/solid.min.js"></script>
+        <script defer src="src/fontawesome.min.js"></script>
+    </head>
+
+    <body>
+        <!-- load core firebase SDK -->
+        <script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-app.js"></script>
+        <!-- load firebase SDKs -->
+        <script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-auth.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-database.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-storage.js"></script>
+        <script>
+        // app config
+        var firebaseConfig = {
+            apiKey: "AIzaSyBtYgbV36Oyos9nz-MohwHeRPrRgvtar3k",
+            authDomain: "cyberticks-dinus.firebaseapp.com",
+            databaseURL: "https://cyberticks-dinus.firebaseio.com",
+            projectId: "cyberticks-dinus",
+            storageBucket: "cyberticks-dinus.appspot.com",
+            messagingSenderId: "292168645560",
+            appId: "1:292168645560:web:fb86d9490d68cf26252d4d",
+            measurementId: "G-SC61BKDQ3E"
+        };
+        // init firebase
+        firebase.initializeApp(firebaseConfig);
+        </script>
+
+        <!-- start of home page -->
+        <div data-role="page" data-theme="b" class="ui-responsive-panel" id="home">
+
+            <div data-role="header">
+                <h1>Dashboard</h1>
+                <div class="custom-btn">
+                    <a href="#menu-panel-home" class="ui-btn-left ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-bottom ui-icon-bars">Menu</a>
+                </div>
+            </div><!-- /header -->
+
+            <div role="main" class="ui-content">
+                <fieldset class="ui-grid-solo" style="width: 50%; transform: translateX(50%);">
+                        <div class="ui-corner-all custom-profile1">
+                            <div class="ui-bar ui-bar-a">
+                            <center>
+                                <h3>Welcome!</h3>
+                            </center>
+                            </div>
+                            <div class="ui-body ui-body-a">
+                            <center>
+                                <img id="pict" class="img-responsive">
+                                <h3 id="_username"></h3>
+                                <script>
+                                    var storage = firebase.storage();
+                                    firebase.auth().onAuthStateChanged(function (){
+                                        const user = firebase.auth().currentUser.displayName;
+                                        const pict = storage.ref();
+                                        document.getElementById('_username').innerHTML = user;
+                                        result = pict.child(user+'/IMG_20191113_224836_275.jpg').getDownloadURL().then(function (url){
+                                            document.getElementById('pict').src = url;
+                                        }).catch(function(err){
+                                            document.getElementById('pict').src = 'src/images/default-pic.jpg'
+                                        });
+
+                                    });
+                                </script>
+                            </center>
+                            </div>
+                        </div>
+                        <h3 class="ui-bar ui-bar-a ui-corner-all">Your Tickets</h3>
+                        <table data-role="table" id="data-table" data-mode="reflow" class="ui-body-d ui-shadow table-stripe ui-responsive" >
+                            <thead>
+                              <tr>
+                                <th data-priority="1">Koridor</th>
+                                <th data-priority="persist">Expired Date</th>
+                              </tr>
+                            </thead>
+                            <tbody id="table-tix">
+                                    <script>
+                                        firebase.auth().onAuthStateChanged(function(user) {
+                                        if (user) {
+                                            const auth = firebase.auth().currentUser;
+                                            //Query data  by user id
+                                            const tix = firebase.database().ref('tickets').orderByChild('_user').equalTo(auth.uid);
+                                            //Script for inserting assignment data to the DOM
+                                            tix.on('value', snap => {
+                                            
+                                            var tabl = document.getElementById('table-tix');
+                                            var content = '';
+                                                
+                                            snap.forEach(function (child) {
+                                                content += "<tr><td>" + child.val().koridor + "</td><td>" + child.val().exp + "</td></tr>"; 
+                                            })
+                                        
+                                            tabl.innerHTML = content;
+                                        });
+                                        } else {
+                                            // No user is signed in.
+                                        }
+                                        });
+                                    </script>
+                            </tbody>
+                          </table>
+                </fieldset>
+            </div><!-- /content -->
+        
+            <div data-role="footer">
+                <div class="ui-body ui-body-b ui-corner-all">
+                    <h3>Disclaimer:</h3>
+                    <p>Prototype Modelled For My University Assignment. </p>
+                </div>
+            </div><!-- /footer -->
+
+            <div data-role="panel" data-display="push" data-theme="b" id="menu-panel-home">
+                <ul data-role="listview">
+                    <li data-icon="delete"><a href="#" data-rel="close">Close menu</a></li>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#buy" data-transition="slide">Tickets</a></li>
+                        <li><a href="#profile" data-transition="slideup">Account</a></li>
+                </ul>
+            </div><!-- /panel -->
+        </div><!-- /page -->
+
+        <!-- start of buy page -->
+        <div data-role="page" data-theme="b" class="ui-responsive-panel" id=buy>
+
+            <div data-role="header">
+                <h1>Buy Ticket</h1>
+                <div class="custom-btn">
+                    <a href="#menu-panel-buy" class="ui-btn-left ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-bottom ui-icon-bars">Menu</a>
+                </div>
+            </div><!-- /header -->
+
+            <div data-role="panel" data-display="push" data-theme="b" id="menu-panel-buy">
+                <ul data-role="listview">
+                    <li data-icon="delete"><a href="#" data-rel="close">Close menu</a></li>
+                        <li><a href="#home" data-transition="slide">Home</a></li>
+                        <li><a href="#buy">Tickets</a></li>
+                        <li><a href="#profile" data-transition="slide">Account</a></li>
+                </ul>
+            </div><!-- /panel -->
+        
+            <div role="main" class="ui-content">
+                <div class="sent">Pembelian Berhasil!</div>
+                <fieldset class="ui-grid-a">
+                <div class="ui-block-a">
+                <h3 class="ui-bar ui-bar-a ui-corner-all">Form Beli</h3>
+                <form id="form-buy">
+                    <ul data-role="listview" data-inset="true">
+                        <li class="ui-field-contain">
+                            <label for="select-koridor" class="select">Pilih Koridor :</label>
+                            <select name="select-koridor" id="select-koridor">
+                                <option>Pilih Koridor</option>
+                                <option>Koridor I (Terminal Mangkang - Terminal Penggaron)</option>
+                                <option>Koridor II (Terboyo – Terminal Sisemut, Ungaran)</option>
+                                <option>Koridor III (Pelabuhan Tanjung Emas – Elizabeth – Pelabuhan Tanjung Emas)</option>
+                                <option>Koridor IV (Terminal Cangkiran – Ngaliyan – Stasiun Tawang)</option>
+                                <option>Koridor V (Meteseh – Bandara – PRPP)</option>
+                                <option>Koridor VI (Undip Tembalang – Unnes Sekaran)</option>
+                                <option>Koridor VII (Terboyo – Genuk – Balaikota)</option>
+                                <option>Koridor VIII (Terminal Cangkiran – Gunungpati – Simpang Lima)</option>
+                            </select>
+                        </li>
+                        <li class="ui-field-contain">
+                            <label for="select-durasi" class="select">Durasi Ticket :</label>
+                            <select name="select-durasi" id="select-durasi">
+                                <option data-placeholder="True" value="Pilih Durasi Tiket">Pilih Durasi Tiket</option>
+                                <option value="1">1 Hari</option>
+                                <option value="2">7 Hari</option>
+                                <option value="3">1 Bulan</option>
+                            </select>
+                        </li>
+                        <li class="ui-field-contain">
+                            <label for="select-durasi" class="select">Payment Method :</label>
+                            <select name="select-durasi" id="select-payment">
+                                <option data-placeholder="True" value="Pilih Durasi Tiket">Pilih Payment Method</option>
+                                <option>Bank Transfer</option>
+                                <option>Minimarket</option>
+                                <option>E-Money</option>
+                            </select>
+                        </li>
+                        <li class="ui-field-contain">
+                            <div id="btn-buy" ><button type="submit" class="ui-btn ui-corner-all ui-btn-a">Submit</button></div>
+                            <div id="btn-cancel"><button style="background-color:rgba(207, 35, 35, 0.829);color: whitesmoke;" class="ui-btn ui-corner-all ui-btn-a">Cancel</button></div>                            
+                        </li>
+                    </ul>
+                </form>
+            </div>
+
+            <div class="ui-block-b" style="padding-left: 10px;">
+                <h3 class="ui-bar ui-bar-a ui-corner-all">Koridor Trans Semarang</h3>
+                <ul data-role="listview" class="ui-listview-outer" data-inset="true">
+                    <li data-role="collapsible" data-iconpos="right" data-shadow="false" data-corners="false">
+                    <h2 style="white-space: pre-wrap;">Koridor I (Terminal Mangkang - Terminal Penggaron)</h2>
+                    <ul data-role="listview" data-shadow="false" data-inset="true" data-corners="false">
+                        <li>
+                            <h2>Dari Mangkang: </h2>
+                            <p style="white-space: pre-wrap;">Terminal Mangkang - Pasar Mangkang – Sango - Kawasan Industri - Karanganyar (SMA 8) - Karpet - KTI - Taman Lele - Lapangan Tugu - PLN - RSUD Tugu – Pengadilan – Muradi – Cakrawala – Karangayu - ADA Pasar Bulu - Pasar Bulu - Tugu Muda - Halte Transit Imam Bonjol - Jalan Kapten Pierre Tendean - Jalan Pemuda - Halte Transit Balaikota Semarang – Pandanaran - Gramedia - Simpang Lima - RRI Stasiun (Ahmad Yani I) - Mullo (Milo) - Beruang - ADA Majapahit - BLK - Pedurungan/Samsat - Zebra - Manunggal Jati - Pucang Gading - Terminal Penggaron.</p>
+                            <h2>Dari Penggaron: </h2>
+                            <p style="white-space: pre-wrap;">Terminal Penggaron – Bitratex - Pucang Gading - Manunggal Jati - Zebra – BLK - ADA Majapahit - Pasar Gayamsari - Kelinci - Mullo (Milo) – RRI - SPBU (Ahmad Yani II) - Simpang Lima - Gramedia - Pandanaran - Tugu Muda - Halte Transit Imam Bonjol - Jalan Kapten Pierre Tendean - Jalan Pemuda - Halte Transit Balaikota Semarang - Pasar Bulu - ADA Pasar Bulu - Karangayu - Cakrawala - Muradi - Pengadilan - RSUD Tugu - PLN - Lapangan Tugu - Taman Lele - KTI - Karpet - Karanganyar (SMA 8) - Kawasan Industri - Sango - Pasar Mangkang - Terminal Mangkang.</p>
+                            </li>
+                    </ul>
+
+                    <li data-role="collapsible" data-iconpos="right" data-shadow="false" data-corners="false">
+                        <h2 style="white-space: pre-wrap;">Koridor II (Terboyo – Terminal Sisemut, Ungaran)</h2>
+                        <ul data-role="listview" data-shadow="false" data-inset="true" data-corners="false">
+                            <li>
+                                <h2>Dari Terboyo: </h2>
+                                <p style="white-space: pre-wrap;"> Terboyo - RSI Sultan Agung - LIK - Kampoeng Semarang - Sawah Besar Kaligawe - Pasar Kobong - Raden Patah - Kota Lama - STIE BPD Jateng - Johar - Balaikota - Katedral - RSUP Kariadi - Ngaglik - SPBU Gajahmungkur - Halte Transit Taman Diponegoro/RS Elisabeth - Kagok - Akpol - Don Bosko - Kesatrian - Pasar Jatingaleh - Bukitsari - Ngesrep/Tembalang - Ruko Setiabudi - SPBU Sukun - Banyumanik - Mega Rubber - Gedawang - BPK Jawa Tengah - Alun-alun Ungaran - Sisemut (Terminal Ungaran)</p>
+
+                                <h2>Dari Sisemut: </h2>
+                                <p style="white-space: pre-wrap;">Sisemut - Taman Unyil - BPK Jawa Tengah - Pudakpayung – Kodam IV/Diponegoro - Terminal Banyumanik - ADA Setiabudi - TK Srondol - Ngesrep - Gombel - Pasar Jatingaleh - Kesatrian - Don Bosco - Akpol - Kagok - Halte Transit Taman Diponegoro/RS Elisabeth - Taman Gajahmungkur - Ngaglik - RSUP Kariadi - RS Wira Bhakti Tama - Halte Transit Imam Bonjol - Halte Balaikota - Dinkes Jateng - Johar - Layur – Stasiun Tawang - Pengampon - Penjaringan - Pasar Kaligawe - Kampoeng Semarang - SMP 4 - RSI Sultan Agung – Terboyo</p>
+                                </li>
+                        </ul>
+                    </li>
+
+                    <li data-role="collapsible" data-iconpos="right" data-shadow="false" data-corners="false">
+                        <h2 style="white-space: pre-wrap;">Koridor III (Pelabuhan Tanjung Emas – Elizabeth – Pelabuhan Tanjung Emas)</h2>
+                        <ul data-role="listview" data-shadow="false" data-inset="true" data-corners="false">
+                            <li>
+                                <h2>Jalur 3A: </h2>
+                                <p style="white-space: pre-wrap;">Pelabuhan Tanjung Emas – Jl. Ronggowarsito – Jl. Pengapon – Jl. R. Patah – Jl. Sayangan – Bubakan – Jl. Pattimura – Jl. Dr. Cipto – Jl. MT Haryono – Jl. Dr. Wahidin – Jl.Teuku Umar - Underpass Jatingaleh - Pasar Jatingaleh - Jl. Sultan Agung – Halte Transit Papandayan – Jl. Diponegoro – Jl. Veteran - Jl.Kariadi – Jl.Menteri Supeno - Halte SMAN 1/Taman Indonesia Kaya - Simpang Lima – Jl. Gajahmada – Jl. Pemuda Halte Balaikota – Tugu Muda – Jl. Imam Bonjol – Stasiun Poncol – Jl. Kolonel Sugiyono – Stasiun Tawang – Jl. Ronggowarsito – Pelabuhan Tanjung Emas.</p>
+
+                                <h2>Jalur 3B: </h2>
+                                <p style="white-space: pre-wrap;">Pelabuhan Tanjung Emas – Jl. Ronggowarsito – Jl. Pengapon – Jl. R. Patah – Jl. Letjen Suprapto – Jl. Imam Bonjol Stasiun Poncol – Jalan Kapten Pierre Tendean - Jl. Pemuda Halte Balaikota – Tugu Muda – Jl.Imambonjol - Jl. Tendean - Jl. Thamrin- Jl. Pandanaran – Simpang Lima – Jl. Pahlawan - Jl.Imambarjo – Jl. Diponegoro – Halte Transit Taman Diponegoro – Jl. Sultan Agung – Jl. Teuku Umar - Underpass Jatingaleh- Pasar Jatingaleh - Jl. Dr. Wahidin – Jl. MT Haryono – Bubakan – Jl. Cenderawasih – Jl. Letjen Suprapto – Jl. Kolonel Sugiyono – Stasiun Tawang – Jl. Ronggowarsito – Pelabuhan Tanjung Emas.</p>
+                                </li>
+                        </ul>
+                    </li>
+                    
+                    <li data-role="collapsible" data-iconpos="right" data-shadow="false" data-corners="false">
+                        <h2 style="white-space: pre-wrap;">Koridor IV (Terminal Cangkiran – Ngaliyan – Stasiun Tawang)</h2>
+                        <ul data-role="listview" data-shadow="false" data-inset="true" data-corners="false">
+                            <li>
+                                <h2>Dari Terminal Cangkiran: </h2>
+                                <p style="white-space: pre-wrap;">Terminal Cangkiran - Jalan Raya Mijen - Jalan Raya Semarang Boja - Jalan Raya Ngaliyan - Jalan Prof. Dr Hamka - Jerakah - Krapyak - Kalibanteng - Jalan Jend Sudirman- ADA Siliwangi Pasar Karang Ayu - Jalan Soegiopranoto - Halte Imam Bonjol Udinus - Halte Balaikota - Jalan Pandanaran - Halte Simpang Lima - Jalan Gajahmada - Jalan Empu Tantular - Stasiun Tawang</p>
+
+                                <h2>Dari Stasiun Tawang: </h2>
+                                <p style="white-space: pre-wrap;">Stasiun Tawang - Kota Lama - Stasiun Poncol - Halte Imam Bonjol Udinus - Jalan Kapten Pierre Tendean - Halte Balaikota - Pasar Bulu - ADA Siliwangi Pasar Karang Ayu - Jalan Jend Sudirman - Kalibanteng - Jalan Siliwangi - Krapyak - Jerakah - Jalan Prof. Dr Hamka - Jalan Raya Ngaliyan - Jalan Raya Cangkiran - Terminal Cangkiran</p>
+                                </li>
+                        </ul>
+                    </li>
+
+                    <li data-role="collapsible" data-iconpos="right" data-shadow="false" data-corners="false">
+                        <h2 style="white-space: pre-wrap;">Koridor V (Meteseh – Bandara – PRPP)</h2>
+                        <ul data-role="listview" data-shadow="false" data-inset="true" data-corners="false">
+                            <li>
+                                <h2>Dari Meteseh: </h2>
+                                <p style="white-space: pre-wrap;">Perumahan Victoria Residence Tembalang - Jalan Kedungmundu - Jalan Tentara Pelajar - Jalan MT Haryono - Jalan Sriwijaya - Jalan Pahlawan - Halte SMA 1- Simpang Lima - Jalan Gajahmada - Jalan Pemuda - Jalan Dr.Sutomo - RSUP Kariadi - Jalan Kaligarang - Jalan Pamularsih - Bundaran Kalibanteng - Jl. Jensud - Puri Anjasmoro - Bandar Udara Internasional Achmad Yani - PRPP - Terang Bangsa</p>
+
+                                <h2>Dari PRPP: </h2>
+                                <p style="white-space: pre-wrap;">Terang Bangsa - Puri Anjasmoro - pasar karangayu - Bunderan BanjirKanalBarat - Bundaran Kalibanteng - Jalan Pamularsih - Jalan Kaligarang - RSUP Kariadi - Jalan Dr.Sutomo - Halte Transit Imam Bonjol - Jalan Kapten Pierre Tendean - Jalan Pemuda - Halte Transit Balaikota Semarang – Pandanaran - Gramedia - Simpang Lima - Jalan Pahlawan - Jalan Sriwijaya - Jalan MT Haryono - Jalan Tentara Pelajar - Jalan Kedungmundu - Perumahan Dinar Mas Tembalang - Bukit Kencana Jaya Tembalang (memutar taman) - Perumahan Victoria Residence Tembalang</p>
+                                </li>
+                        </ul>
+                    </li>
+
+                    <li data-role="collapsible" data-iconpos="right" data-shadow="false" data-corners="false">
+                        <h2 style="white-space: pre-wrap;">Koridor VI (Undip Tembalang – Unnes Sekaran)</h2>
+                        <ul data-role="listview" data-shadow="false" data-inset="true" data-corners="false">
+                            <li>
+                                <h2>Dari Undip:</h2>
+                                <p style="white-space: pre-wrap;">RS Nasional Diponegoro - Rusunawa Undip - Jalan Prof H. Soedarto - Jalan Ngesrep Timur V - Jalan Setiabudi - Pasar Jatingaleh - Jalan Teuku Umar - Jalan Sultan Agung - Memutar di Halte Transit Taman Diponegoro/RS Elisabeth - Jalan Sultan Agung - Jalan Semeru Raya - Jalan Karangrejo Raya - Jalan Pawiyatan Luhur - Kampus Universitas Katolik Soegijapranata - Kampus Universitas 17 Agustus 1945 - Akpelni - Jalan Dewi Sartika Raya - Jalan Kolonel HR Hadijanto - Jalan Sekaran Raya - Kampus Unnes Sekaran, Fakultas Teknik</p>
+
+                                <h2>Dari Unnes: </h2>
+                                <p style="white-space: pre-wrap;">Fakultas Teknik Unnes - Jalan Sekaran Raya - Jalan Kolonel HR Hadijanto - Jalan Dewi Sartika Raya - Akpelni - Kampus Universitas 17 Agustus 1945 - Kampus Universitas Katolik Soegijapranata - Jalan Pawiyatan Luhur - Jalan Karangrejo Raya - Jalan Semeru Raya - Jalan Sultan Agung - Memutar di Halte Transit Taman Diponegoro/RS Elisabeth - Jalan Sultan Agung - Jalan Teuku Umar - Pasar Jatingaleh - Jalan Setiabudi - Jalan Ngesrep Timur V - Jalan Prof H. Soedarto - Jalan Banyuputih - RS Nasional Diponegoro</p>
+                                </li>
+                        </ul>
+                    </li>
+
+                    <li data-role="collapsible" data-iconpos="right" data-shadow="false" data-corners="false">
+                        <h2 style="white-space: pre-wrap;">Koridor VII (Terboyo – Genuk – Balaikota)</h2>
+                        <ul data-role="listview" data-shadow="false" data-inset="true" data-corners="false">
+                            <li>
+                                <h2>Dari Terboyo :</h2>
+                                <p style="white-space: pre-wrap;">Terboyo – Jl. Wolter Monginsidi – Jl. Arteri Soekarno-Hatta – Relokasi Pasar Johar – Jl. Citarum – Jl. Pattimura – Jl Cendrawasih – Jl Pemuda Balaikota</p>
+
+                                <h2>Dari Balaikota:</h2>
+                                <p style="white-space: pre-wrap;">Jl. Pemuda Balaikota –  Jl Imam Bonjol Udinus – Jl Kapten Piere Tendean – Jl Suzuki Pemuda – Jl Kolonel Sugiono – Jl Empu Tantular – Stasiun Tawang – Jl Merak – Jl. MT Haryono (Sayangan) – Jl. Patimura – Jl. Citarum – Relokasi Pasar Johar – Jl. Arteri Soekarno-Hatta – Jl. Wolter Monginsidi – Jl. Kaligawe Genuk – Terboyo</p>
+                                </li>
+                        </ul>
+                    </li>
+
+                    <li data-role="collapsible" data-iconpos="right" data-shadow="false" data-corners="false">
+                        <h2 style="white-space: pre-wrap;">Koridor VIII (Terminal Cangkiran – Gunungpati – Simpang Lima)</h2>
+                        <ul data-role="listview" data-shadow="false" data-inset="true" data-corners="false">
+                            <li>
+                                <h2>Dari Terminal Cangkiran:</h2>
+                                <p style="white-space: pre-wrap;">Terminal Cangkiran – Jl Raya Cangkiran gunung Pati – Pertigaan Gunung Pati Ungaran – Jl Warsito Sugiarto – Jl Raya Manyaran Gunung Pati – Jl Untung  Suropati – Jl Abdul Rahman Saleh – Kalibanteng – Jl Jend Sudirman – Jl Indrapasta – Jl Pemuda Balaikota – Jl Pandanaran – Halte Simpang Lima</p>
+
+                                <h2>Dari Simpang Lima:</h2>
+                                <p style="white-space: pre-wrap;">Halte Simpang Lima – Jl Pandanaran – Jl Mgr Soegiopranoto – Jl Jenderal Sudirman – Kalibanteng – Jl Abdul Rahman Saleh – Jl Untung Suropati – Jl Raya Manyaran Gunung Pati – Jl Warsito Sugiarto – Pertigaan Gunung Pati Ungaran – Jl Raya Cangkiran Gunung Pati – Terminal Cangkiran</p>
+                                </li>
+                        </ul>
+                    </li>
+                    </li>
+                </ul>
+            </div>
+            </fieldset>
+            </div><!-- /content -->
+
+            <div data-role="footer">
+                <p>Prototype modelled for my university assignment</p>
+            </div><!-- /footer -->
+        </div><!-- /page -->
+
+        <!-- start of account page -->
+        <div data-role="page" data-theme="b" class="ui-responsive-panel" id=profile>
+
+            <div data-role="header">
+                <h1>My Account</h1>
+                <div class="custom-btn">
+                    <a href="#menu-panel-acc" class="ui-btn-left ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-bottom ui-icon-bars">Menu</a>
+                </div>
+            </div><!-- /header -->
+
+            <div data-role="panel" data-display="push" data-theme="b" id="menu-panel-acc">
+                <ul data-role="listview">
+                    <li data-icon="delete"><a href="#" data-rel="close">Close menu</a></li>
+                        <li><a href="#home" data-transition="slidedown">Home</a></li>
+                        <li><a href="#buy" data-transition="slide">Tickets</a></li>
+                        <li><a href="#profile">Account</a></li>
+                </ul>
+            </div><!-- /panel -->
+
+            <div data-role="panel" data-position-fixed="true" data-display="push" data-theme="b" id="menu-panel-edit" data-position="right">
+                <form id="editform">
+                    <h2>Login</h2>
+                    <label for="name">Profile Data:</label>
+                    <input type="text" name="name" id="newName" value="" data-clear-btn="true" >
+                    <label for="file">Change Profile Picture</label>
+                    <input type="file" name="file" id="profilePict" value="">
+                    <div class="ui-grid-a">
+                        <div class="ui-block-a"><button data-rel="close" class="ui-btn ui-shadow ui-corner-all ui-btn-b ui-mini">Cancel</button></div>
+                        <div class="ui-block-b"><button type="submit" class="ui-btn ui-shadow ui-corner-all ui-btn-a ui-mini">Save</button></div>
+                    </div>
+                </form>
+            </div><!-- /panel -->
+        
+            <div role="main" class="ui-content">
+                <fieldset class="ui-grid-solo" style="width: 50%; transform: translateX(50%);">
+                    <div class="ui-bar ui-bar-a">
+                        <center>
+                            <h3>My Profile:</h3>
+                        </center>
+                        </div>
+                        <div class="ui-body ui-body-a">
+                        <center>
+                            <img id="acc-pict" class="img-responsive">
+                            <h3 id="acc-username"></h3>
+                            <script>
+                                var storage = firebase.storage();
+                                firebase.auth().onAuthStateChanged(function (){
+                                    const user = firebase.auth().currentUser.displayName;
+                                    const pict = storage.ref();
+                                    document.getElementById('acc-username').innerHTML = user;
+                                    result = pict.child(user+'/*').getDownloadURL().then(function (url){
+                                        document.getElementById('acc-pict').src = url;
+                                    }).catch(function(err){
+                                        document.getElementById('acc-pict').src = 'src/images/default-pic.jpg'
+                                    });
+                                });
+                            </script>
+                        </center>
+                        </div>
+                    <div class=" custom-btn-edit ui-block-a">      
+                        <a href="#menu-panel-edit" class="ui-btn ui-icon-edit ui-btn-icon-top">Edit Profile</a>
+                    </div>
+                    <div class="custom-btn-logout ui-block-a">      
+                        <button id="logout" class="ui-btn ui-icon-lock ui-btn-icon-top">Logout</button>
+                    </div>
+                    </fieldset>
+                </div>  
+            </div><!-- /content -->
+        
+            <div data-role="footer">
+                <p>Prototype modelled for my university assignment</p>
+            </div><!-- /footer -->
+        </div><!-- /page -->
+
+        <!-- load main app script -->
+        <script defer src="src/app.js"></script>
+    </body>
+</html>
